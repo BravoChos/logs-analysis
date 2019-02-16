@@ -1,7 +1,6 @@
 # "Database code" for the DB News.
 
 import psycopg2
-import bleach
 
 DBNAME = "news"
 
@@ -9,16 +8,16 @@ DBNAME = "news"
 def get_most_popular_three_articles():
     """Return most popluar three articles
     from the 'database', most recent first."""
-    db = psycopg2.connect(database=DBNAME)
-    c = db.cursor()
-    c.execute("""
+    db, crusor = connect()
+    query = """
       SELECT title, count(log.path) as sum
       FROM articles
-      JOIN log ON log.path like concat('%',articles.slug,'%')
+      JOIN log ON log.path = concat('/article/',articles.slug)
       GROUP BY title
       ORDER BY sum desc limit 3
-      """)
-    result = c.fetchall()
+      """
+    crusor.execute(query)
+    result = crusor.fetchall()
     output = '  "%s" -- %s views\n'
     top_articles = "".join(output % (title, str(sum)) for title, sum in result)
     print('\n1. What are the most popular three articles of all time?')
@@ -29,10 +28,8 @@ def get_most_popular_three_articles():
 
 def get_most_popular_author():
     """Return most popluar article author of all time from the 'database' """
-    db = psycopg2.connect(database=DBNAME)
-    c = db.cursor()
-    c.execute(
-      """
+    db, crusor = connect()
+    query = """
       SELECT authors.name AS author, count(log.path) AS views
       FROM articles, authors, log
       WHERE authors.id = articles.author
@@ -40,8 +37,8 @@ def get_most_popular_author():
       GROUP BY authors.name
       ORDER BY views desc
       """
-    )
-    result = c.fetchall()
+    crusor.execute(query)
+    result = crusor.fetchall()
     output = '  "%s" -- %s views\n'
     top_authors = "".join(output % (author, views) for author, views in result)
     print('\n2. Who are the most popular article authors of all time?')
@@ -53,9 +50,8 @@ def get_most_popular_author():
 def get_date_when_error_test_failed():
     """Return days where more than 1% of requests lead to errors
     from the 'database' """
-    db = psycopg2.connect(database=DBNAME)
-    c = db.cursor()
-    c.execute("""
+    db, crusor = connect()
+    query = """
         SELECT
             to_char(errorTest.date, 'Mon DD, YYYY'),
             ROUND(errorTest.percentage_error, 2)
@@ -79,15 +75,28 @@ def get_date_when_error_test_failed():
             GROUP BY status_error.date
         ) AS errorTest
         WHERE errorTest.percentage_error > 1.0
-    """)
-    result = c.fetchall()
+    """
+    crusor.execute(query)
+    result = crusor.fetchall()
     output = '  %s -- %s'
     error_test = "".join(
         output % (str(date), str(error)) for date, error in result
     )
-    print('\n3. On which days did more than 1 percentage of requests'
-        + ' lead to errors?'
-    )
+    print('\n 3. On which days did more than 1 percentage of requests'
+          + ' lead to errors?'
+          )
     print(error_test + ' %' + 'errors\n')
     db.close()
     return result
+
+
+# SUGGESTION : Since these lines are repeating in different functions,
+# its better to implement a function and reuse that.
+def connect(database_name="news"):
+    try:
+        db = psycopg2.connect("dbname={}".format(database_name))
+        cursor = db.cursor()
+        return db, cursor
+    except psycopg2.DatabaseError, e:
+        print("\nDB connection failed. Error Message is :")
+        print(e)
