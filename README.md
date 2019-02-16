@@ -28,7 +28,7 @@ Present this as a sorted list with the most popular author at the top.
   
   Behavior:
   
-	1. Request has to be HTTP localhost:8000/article/top_three_articles 
+	1. Request has to be HTTP localhost:8000/article/best_authors 
 	2. Get sql result from postgresql by executing function /article/best_authors()	
 	3. Put the sql result into HTML template which contains %s. 
 	4. variable 'author' and 'views' will be replaced with %s.
@@ -45,7 +45,7 @@ The log table includes a column status that indicates the HTTP status code that 
   
   Behavior:
   
-	1. Request has to be HTTP localhost:8000/article/top_three_articles 
+	1. Request has to be HTTP localhost:8000/article/percentage_error 
 	2. Get sql result from postgresql by executing function /article/percentage_error()	
 	3. Put the sql result into HTML template which contains %s. 
 	4. variable 'date' and 'error' will be replaced with %s.
