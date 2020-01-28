@@ -68,7 +68,7 @@ The log table includes a column status that indicates the HTTP status code that 
        6. Put it into vagrant directory which is shared with your virtual machine
        7. To load the data, cd into vagrant directory use the following command
        
-       1) vargran up 
+       1) vagrant up 
        2) vagrant ssh
        3) psql -d news -f newsdata.sql
 
